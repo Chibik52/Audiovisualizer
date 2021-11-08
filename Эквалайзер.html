@@ -1,0 +1,121 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+*::-webkit-scrollbar{width:0;}
+*{
+margin:0;
+padding:0;
+}
+canvas{
+width:100%;
+height:100%;
+border:1px solid black;
+}
+body{
+background:black;
+color:white;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas1" width="1024" height="512"></canvas>
+<div id="mp3box"><br><audio id="audio1" controls></audio></div>
+<input type="file" id="file1" accept="audio/*">
+<input type="button" value="Инвертировать" onclick="btn1();">
+<script language="JavaScript">
+let audio1,ctx1,actx,analyser1,source,bars;
+let button1=false;
+file1=document.getElementById("file1");
+audio1=document.getElementById("audio1");
+file1.addEventListener("change",function(){
+console.log="Загрузился";
+const files=this.files;
+audio1.src=URL.createObjectURL(files[0]);
+audio1.load();
+const canvas1=document.getElementById("canvas1");
+ctx1=canvas1.getContext("2d");
+actx=new (AudioContext||webkitAudioContext)();
+audio1LR=actx.createChannelSplitter(2);
+source=actx.createMediaElementSource(audio1);
+analyser1=actx.createAnalyser();
+analyser2=actx.createAnalyser();
+source.disconnect();
+analyser1.disconnect();
+analyser2.disconnect();
+source.connect(audio1LR);
+audio1LR.connect(analyser1,0);
+audio1LR.connect(analyser2,1);
+source.connect(actx.destination);
+draw();
+});
+function btn1(){
+if(button1==false)button1=true;
+else button1=false;
+}
+function draw(){
+fbcArray1=new Uint8Array(analyser1.frequencyBinCount);
+fbcArray2=new Uint8Array(analyser2.frequencyBinCount);
+analyser1.getByteFrequencyData(fbcArray1);
+analyser2.getByteFrequencyData(fbcArray2);
+ctx1.clearRect(0,0,canvas1.width,canvas1.height);
+//ctx1.fillStyle="white";
+bars=32;
+if(button1==false){
+for(i=0;i<bars;i++){
+bar_x=i*16;
+bar_width=15;
+bar_height=-(fbcArray1[i]*1.5);
+red=Math.abs(Math.round(bar_height/50))*i;
+green=i/4;
+blue=Math.abs(Math.round(bar_height/5));
+ctx1.fillStyle="white";
+ctx1.fillRect(bar_x,canvas1.height+bar_height-2,bar_width,2);
+ctx1.fillStyle="rgb("+red+","+green+","+blue+")";
+ctx1.fillRect(bar_x,canvas1.height,bar_width,bar_height);
+}
+for(i=bars;i>=0;i--){
+bar_x=i*16;
+bar_width=15;
+bar_height=-(fbcArray2[i]*1.5);
+red=Math.abs(Math.round(bar_height/50))*i;
+green=i/4;
+blue=Math.abs(Math.round(bar_height/5));
+ctx1.fillStyle="white";
+ctx1.fillRect(canvas1.width-bar_x,canvas1.height+bar_height-2,bar_width,2);
+ctx1.fillStyle="rgb("+red+","+green+","+blue+")";
+ctx1.fillRect(canvas1.width-bar_x,canvas1.height,bar_width,bar_height);
+}
+}
+else {
+for(i=bars;i>=0;i--){
+bar_x=i*16;
+bar_width=15;
+bar_height=-(fbcArray1[i]*1.5);
+red=Math.abs(Math.round(bar_height/50))*i;
+green=i/4;
+blue=Math.abs(Math.round(bar_height/5));
+ctx1.fillStyle="white";
+ctx1.fillRect(canvas1.width/2-bar_x,canvas1.height+bar_height-2,bar_width,2);
+ctx1.fillStyle="rgb("+red+","+green+","+blue+")";
+ctx1.fillRect(canvas1.width/2-bar_x,canvas1.height,bar_width,bar_height);
+}
+for(i=0;i<bars;i++){
+bar_x=i*16;
+bar_width=15;
+bar_height=-(fbcArray2[i]*1.5);
+red=Math.abs(Math.round(bar_height/50))*i;
+green=i/4;
+blue=Math.abs(Math.round(bar_height/5));
+ctx1.fillStyle="white";
+ctx1.fillRect(canvas1.width/2+bar_x,canvas1.height+bar_height-2,bar_width,2);
+ctx1.fillStyle="rgb("+red+","+green+","+blue+")";
+ctx1.fillRect(canvas1.width/2+bar_x,canvas1.height,bar_width,bar_height);
+}
+}
+//audio1.addEventListener("play",initAnalyser,false);
+requestAnimationFrame(draw);
+}
+</script>
+</body>
+</html>
